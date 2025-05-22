@@ -5,7 +5,8 @@ pipeline {
         stage('Clone Repo') {
             steps {
               
-                git 'https://github.com/Suvamatha/Devops_project.git'
+                git branch: 'main', url: 'https://github.com/Suvamatha/Devops_project.git'
+
             }
         }
 
