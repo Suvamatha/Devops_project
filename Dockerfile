@@ -1,16 +1,8 @@
-FROM centos:latest
+FROM quay.io/centos/centos:stream8
 
 RUN yum install -y httpd zip unzip && yum clean all
 
-# Download and place the website zip
-ADD https://www.free-css.com/assets/files/free-css-templates/download/page254/photogenic.zip /var/www/html/
-
-WORKDIR /var/www/html/
-
-# Extract and move files into the web root
-RUN unzip photogenic.zip && \
-    cp -rvf photogenic/* . && \
-    rm -rf photogenic photogenic.zip
+COPY . /var/www/html
 
 EXPOSE 80
 
