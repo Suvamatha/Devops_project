@@ -1,6 +1,6 @@
-FROM quay.io/centos/centos:stream8
+FROM almalinux:8
 
-RUN yum install -y httpd zip unzip && yum clean all
+RUN dnf install -y httpd zip unzip && dnf clean all
 
 COPY . /var/www/html
 
