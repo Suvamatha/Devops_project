@@ -1,30 +1,22 @@
 pipeline {
     agent any
-
     stages {
         stage('Clone Repo') {
             steps {
-              
                 git branch: 'main', url: 'https://github.com/Suvamatha/Devops_project.git'
-
             }
         }
-
         stage('Build Docker Image') {
             steps {
                 script {
-                    dockerImage = docker.build('shapely-php-app')
+                    sh 'docker build -t my-app-image .'
                 }
             }
         }
-
         stage('Run Docker Container') {
             steps {
                 script {
-                    // Stop old container if running
-                    sh 'docker rm -f shapely-container || true'
-                    // Run new one
-                    sh 'docker run -d -p 8080:80 --name shapely-container shapely-php-app'
+                    sh 'docker run -d -p 8080:80 my-app-image'
                 }
             }
         }
