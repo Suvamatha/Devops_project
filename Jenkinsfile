@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_IMAGE_NAME = 'my-php-app'
         DOCKER_TAG = "${env.BUILD_NUMBER}"
-        SONAR_SCANNER_HOME = tool 'sonar7.0'
+        SONAR_SCANNER_HOME = tool 'sonar7.0' // Ensure 'sonar7.0' is configured in Jenkins
     }
 
     stages {
@@ -118,9 +118,7 @@ pipeline {
 
     post {
         always {
-            node {
-                sh 'docker system prune -f'
-            }
+            sh 'docker system prune -f' // Removed node block, as agent any should provide context
             mail to: 'shresthasuvam27@gmail.com',
                  subject: "Jenkins Job '${JOB_NAME}' (${BUILD_NUMBER}) Status",
                  body: "Check the build details here: ${BUILD_URL}"
