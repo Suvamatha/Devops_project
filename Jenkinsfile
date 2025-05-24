@@ -43,19 +43,15 @@ pipeline {
         }
 
         stage('Push Image') {
+
             steps {
-                script {
-                    sh "docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} suvam1/${DOCKER_IMAGE}:${DOCKER_TAG}"
-            
-                    withDockerRegistry(
-                        credentialsId: 'Dockerhub-cred', 
-                        url: 'https://index.docker.io/v1/'
-                    ) {
-                        sh "docker push suvam1/${DOCKER_IMAGE}:${DOCKER_TAG}"
-                    }
+                withDockerRegistry(credentialsId: 'Dockerhub-cred', url: ''){
+                    sh '''
+                    docker push $dockerImages:$BUILD_NUMBER
+                    '''
                 }
             }
-        }
+        
     }
     
     post {
