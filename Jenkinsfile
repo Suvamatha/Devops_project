@@ -1,27 +1,39 @@
 pipeline {
-    agent { label 'docker-node' }
-
+    agent any // Reverted to 'any' to avoid 'docker-node' label issue
+    
     environment {
         DOCKER_IMAGE = 'my-app-image'
         DOCKER_TAG = "${env.BUILD_NUMBER}"
-        scannerHome = tool 'sonar7.0'
+        scannerHome = tool 'sonar7.0' // Ensure 'sonar7.0' is configured in Jenkins
     }
-
+    
     stages {
         stage('Git Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/Suvamatha/Devops_project.git'
+                script {
+                    try {
+                        git branch: 'main', url: 'https://github.com/Suvamatha/Devops_project.git'
+                    } catch (Exception e) {
+                        error "Git checkout failed: ${e.message}"
+                    }
+                }
             }
         }
-
+        
         stage('Run Tests') {
             steps {
-                sh 'composer install'
-                sh 'vendor/bin/phpunit --coverage-clover coverage.xml'
-                sh 'npm install && npm run test -- --coverage'
+                script {
+                    try {
+                        sh 'composer install' // Install PHP dependencies
+                        sh 'vendor/bin/phpunit --coverage-clover coverage.xml' // Generate PHP coverage report
+                        sh 'npm install && npm run test -- --coverage' // Generate JS coverage report
+                    } catch (Exception e) {
+                        error "Tests failed: ${e.message}"
+                    }
+                }
             }
         }
-
+        
         stage('Code Quality Check') {
             steps {
                 withSonarQubeEnv(credentialsId: 'sonarqube-token', installationName: 'MySonarQube') {
@@ -37,15 +49,15 @@ pipeline {
                 }
             }
         }
-
+        
         stage('Quality Gate') {
             steps {
                 timeout(time: 5, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
+                    waitForQualityGate abortPipeline: true // Fail pipeline if quality gate fails
                 }
             }
         }
-
+        
         stage('Build Docker Image') {
             steps {
                 script {
@@ -57,13 +69,17 @@ pipeline {
                 }
             }
         }
-
+        
         stage('Run Docker Container') {
             steps {
                 script {
-                    sh 'docker stop my-app-container || true'
-                    sh 'docker rm my-app-container || true'
-                    sh "docker run -d --name my-app-container -p 8081:80 ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                    try {
+                        sh 'docker stop my-app-container || true'
+                        sh 'docker rm my-app-container || true'
+                        sh "docker run -d --name my-app-container -p 8081:80 ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                    } catch (Exception e) {
+                        error "Docker container run failed: ${e.message}"
+                    }
                 }
             }
         }
@@ -71,9 +87,13 @@ pipeline {
         stage('Trivy Scan') {
             steps {
                 script {
-                    sh "trivy image --format json --output trivy-report.json ${DOCKER_IMAGE}:${DOCKER_TAG}"
-                    sh "trivy image --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed ${DOCKER_IMAGE}:${DOCKER_TAG}"
-                    archiveArtifacts artifacts: 'trivy-report.json', allowEmptyArchive: true
+                    try {
+                        sh "trivy image --format json --output trivy-report.json ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                        sh "trivy image --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                        archiveArtifacts artifacts: 'trivy-report.json', allowEmptyArchive: true
+                    } catch (Exception e) {
+                        error "Trivy scan failed: ${e.message}"
+                    }
                 }
             }
         }
@@ -81,11 +101,15 @@ pipeline {
         stage('Push Image') {
             steps {
                 script {
-                    sh "docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} suvam1/${DOCKER_IMAGE}:${DOCKER_TAG}"
-                    sh "docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} suvam1/${DOCKER_IMAGE}:latest"
-                    withDockerRegistry(credentialsId: 'Dockerhub-cred', url: 'https://index.docker.io/v1/') {
-                        sh "docker push suvam1/${DOCKER_IMAGE}:${DOCKER_TAG}"
-                        sh "docker push suvam1/${DOCKER_IMAGE}:latest"
+                    try {
+                        sh "docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} suvam1/${DOCKER_IMAGE}:${DOCKER_TAG}"
+                        sh "docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} suvam1/${DOCKER_IMAGE}:latest"
+                        withDockerRegistry(credentialsId: 'Dockerhub-cred', url: 'https://index.docker.io/v1/') {
+                            sh "docker push suvam1/${DOCKER_IMAGE}:${DOCKER_TAG}"
+                            sh "docker push suvam1/${DOCKER_IMAGE}:latest"
+                        }
+                    } catch (Exception e) {
+                        error "Docker push failed: ${e.message}"
                     }
                 }
             }
@@ -94,7 +118,7 @@ pipeline {
     
     post {
         always {
-            sh 'docker system prune -f' // Cleanup unused images
+            sh 'docker system prune -f' // Cleanup unused Docker images
             mail to: 'shresthasuvam27@gmail.com',
                  subject: "Job '${JOB_NAME}' (${BUILD_NUMBER}) status",
                  body: "Please go to ${BUILD_URL} and verify the build"
@@ -110,7 +134,7 @@ Regards,
 DevOps Team"""
         }
         failure {
-            mail to: 'shresthasuvam27@gmail.com',
+            mail to: 'shresthasuvam27@gmail.com', // Unified email address
                  subject: 'BUILD FAILED NOTIFICATION',
                  body: """Hi Team,
 Build #${BUILD_NUMBER} failed during:
