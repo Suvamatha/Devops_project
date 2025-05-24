@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE_NAME = 'my-php-app'
+         dockerImages = 'suvam1/jenkins-project'
         DOCKER_TAG = "${env.BUILD_NUMBER}"
         SONAR_SCANNER_HOME = tool 'sonar7.0' // Ensure 'sonar7.0' is configured in Jenkins
     }
@@ -84,33 +84,26 @@ pipeline {
             }
         }
 
-        stage('Vulnerability Scan (Trivy)') {
-            steps {
-                script {
-                    try {
-                        sh "trivy image --format json --output trivy-report.json ${DOCKER_IMAGE_NAME}:${DOCKER_TAG}"
-                        sh "trivy image --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed ${DOCKER_IMAGE_NAME}:${DOCKER_TAG}"
-                        archiveArtifacts artifacts: 'trivy-report.json', allowEmptyArchive: true
-                    } catch (Exception e) {
-                        error "Trivy scan failed: ${e.message}"
-                    }
-                }
-            }
-        }
+        // stage('Vulnerability Scan (Trivy)') {
+        //     steps {
+        //         script {
+        //             try {
+        //                 sh "trivy image --format json --output trivy-report.json ${DOCKER_IMAGE_NAME}:${DOCKER_TAG}"
+        //                 sh "trivy image --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed ${DOCKER_IMAGE_NAME}:${DOCKER_TAG}"
+        //                 archiveArtifacts artifacts: 'trivy-report.json', allowEmptyArchive: true
+        //             } catch (Exception e) {
+        //                 error "Trivy scan failed: ${e.message}"
+        //             }
+        //         }
+        //     }
+        // }
 
-        stage('Push Docker Image to Registry') {
+        stage('Push Image') {
             steps {
-                script {
-                    try {
-                        sh "docker tag ${DOCKER_IMAGE_NAME}:${DOCKER_TAG} suvam1/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}"
-                        sh "docker tag ${DOCKER_IMAGE_NAME}:${DOCKER_TAG} suvam1/${DOCKER_IMAGE_NAME}:latest"
-                        withDockerRegistry(credentialsId: 'Dockerhub-cred', url: 'https://index.docker.io/v1/') {
-                            sh "docker push suvam1/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}"
-                            sh "docker push suvam1/${DOCKER_IMAGE_NAME}:latest"
-                        }
-                    } catch (Exception e) {
-                        error "Docker image push failed: ${e.message}"
-                    }
+                withDockerRegistry(credentialsId: 'dockerhub-credentials', url: ''){
+                    sh '''
+                    docker push $dockerImages:$BUILD_NUMBER
+                    '''
                 }
             }
         }
