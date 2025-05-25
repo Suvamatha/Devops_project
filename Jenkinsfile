@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        dockerImages = 'suvam1/jenkins-project'
+        dockerImage = 'suvam1/devops-project'
         DOCKER_TAG = "${env.BUILD_NUMBER}"
         DOCKER_IMAGE_NAME = 'suvam1/jenkins-project'
         SONAR_SCANNER_HOME = tool 'sonar7.0'
@@ -76,6 +76,16 @@ pipeline {
             }
         }
     }
+
+        stage('Push Image') {
+            steps {
+                withDockerRegistry(credentialsId: 'dockerhub-credentials', url: ''){
+                    sh '''
+                    docker push $dockerImages:$BUILD_NUMBER
+                    '''
+                }
+            }
+        }
     // post {
     //     always {
     //         sh 'docker system prune -f'
