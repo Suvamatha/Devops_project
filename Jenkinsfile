@@ -23,9 +23,6 @@ pipeline {
                 script {
                     try {
                         sh 'composer install'
-                        // Uncomment and adjust paths if needed
-                        // sh 'vendor/bin/phpunit --coverage-clover coverage.xml'
-                        // sh 'npm install && npm run test -- --coverage'
                     } catch (Exception e) {
                         error "Tests failed: ${e.message}"
                     }
@@ -36,12 +33,12 @@ pipeline {
             steps {
                 withSonarQubeEnv(credentialsId: 'Sonarqube-auth-token', installationName: 'MySonarQube') {
                     sh """
-                        ${SONAR_SCANNER_HOME}/bin/sonar-scanner \\
-                        -Dsonar.projectKey=devops-php-app \\
-                        -Dsonar.projectName='DevOps PHP Application' \\
-                        -Dsonar.sources=. \\
-                        -Dsonar.exclusions=node_modules/**,vendor/** \\
-                        -Dsonar.php.coverage.reportPaths=coverage.xml \\
+                        ${SONAR_SCANNER_HOME}/bin/sonar-scanner \
+                        -Dsonar.projectKey=devops-php-app \
+                        -Dsonar.projectName='DevOps PHP Application' \
+                        -Dsonar.sources=. \
+                        -Dsonar.exclusions=node_modules/**,vendor/** \
+                        -Dsonar.php.coverage.reportPaths=coverage.xml \
                         -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
                     """
                 }
@@ -89,4 +86,12 @@ pipeline {
         success {
             mail to: 'shresthasuvam27@gmail.com',
                  subject: 'BUILD SUCCESS NOTIFICATION',
-                 body: """Hi Team,
+                 body: "Hi Team,\n\nBuild #${BUILD_NUMBER} passed all quality checks and was successfully processed.\nDocker Image: ${DOCKER_IMAGE_NAME}:${DOCKER_TAG}\nFor more details, visit: ${BUILD_URL}\n\nRegards,\nDevOps Team"
+        }
+        failure {
+            mail to: 'shresthasuvam27@gmail.com',
+                 subject: 'BUILD FAILED NOTIFICATION',
+                 body: "Hi Team,\n\nBuild #${BUILD_NUMBER} failed during the '${currentBuild.result}' stage.\nPlease review the logs for more information: ${BUILD_URL}\n\nRegards,\nDevOps Team"
+        }
+    }
+}
