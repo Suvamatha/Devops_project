@@ -1,12 +1,11 @@
 pipeline {
     agent any
-
     environment {
-         dockerImages = 'suvam1/jenkins-project'
+        dockerImages = 'suvam1/jenkins-project'
         DOCKER_TAG = "${env.BUILD_NUMBER}"
-        SONAR_SCANNER_HOME = tool 'sonar7.0' // Ensure 'sonar7.0' is configured in Jenkins
+        DOCKER_IMAGE_NAME = 'suvam1/jenkins-project'
+        SONAR_SCANNER_HOME = tool 'sonar7.0'
     }
-
     stages {
         stage('Source Checkout') {
             steps {
@@ -19,12 +18,12 @@ pipeline {
                 }
             }
         }
-
         stage('Run Unit and Integration Tests') {
             steps {
                 script {
                     try {
                         sh 'composer install'
+                        // Uncomment and adjust paths if needed
                         // sh 'vendor/bin/phpunit --coverage-clover coverage.xml'
                         // sh 'npm install && npm run test -- --coverage'
                     } catch (Exception e) {
@@ -33,10 +32,9 @@ pipeline {
                 }
             }
         }
-
         stage('Code Quality Analysis (SonarQube)') {
             steps {
-                withSonarQubeEnv(credentialsId: 'sonarqube-token', installationName: 'MySonarQube') {
+                withSonarQubeEnv(credentialsId: 'Sonarqube-auth-token', installationName: 'MySonarQube') {
                     sh """
                         ${SONAR_SCANNER_HOME}/bin/sonar-scanner \\
                         -Dsonar.projectKey=devops-php-app \\
@@ -49,7 +47,6 @@ pipeline {
                 }
             }
         }
-
         stage('Quality Gate Check') {
             steps {
                 timeout(time: 5, unit: 'MINUTES') {
@@ -57,7 +54,6 @@ pipeline {
                 }
             }
         }
-
         stage('Build Docker Image') {
             steps {
                 script {
@@ -69,7 +65,6 @@ pipeline {
                 }
             }
         }
-
         stage('Run Docker Container (Local)') {
             steps {
                 script {
@@ -83,61 +78,15 @@ pipeline {
                 }
             }
         }
-
-        // stage('Vulnerability Scan (Trivy)') {
-        //     steps {
-        //         script {
-        //             try {
-        //                 sh "trivy image --format json --output trivy-report.json ${DOCKER_IMAGE_NAME}:${DOCKER_TAG}"
-        //                 sh "trivy image --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed ${DOCKER_IMAGE_NAME}:${DOCKER_TAG}"
-        //                 archiveArtifacts artifacts: 'trivy-report.json', allowEmptyArchive: true
-        //             } catch (Exception e) {
-        //                 error "Trivy scan failed: ${e.message}"
-        //             }
-        //         }
-        //     }
-        // }
-
-        // stage('Push Image') {
-        //     steps {
-        //         withDockerRegistry(credentialsId: 'dockerhub-credentials', url: ''){
-        //             sh '''
-        //             docker push $dockerImages:$BUILD_NUMBER
-        //             '''
-        //         }
-        //     }
-        // }
     }
-
-//     post {
-//         always {
-//             sh 'docker system prune -f' // Removed node block, as agent any should provide context
-//             mail to: 'shresthasuvam27@gmail.com',
-//                  subject: "Jenkins Job '${JOB_NAME}' (${BUILD_NUMBER}) Status",
-//                  body: "Check the build details here: ${BUILD_URL}"
-//         }
-//         success {
-//             mail to: 'shresthasuvam27@gmail.com',
-//                  subject: 'BUILD SUCCESS NOTIFICATION',
-//                  body: """Hi Team,
-
-// Build #${BUILD_NUMBER} passed all quality checks and was successfully processed.
-// Docker Image: suvam1/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}
-// For more details, visit: ${BUILD_URL}
-
-// Regards,
-// DevOps Team"""
-//         }
-//         failure {
-//             mail to: 'shresthasuvam27@gmail.com',
-//                  subject: 'BUILD FAILED NOTIFICATION',
-//                  body: """Hi Team,
-
-// Build #${BUILD_NUMBER} failed during the '${currentBuild.result}' stage.
-// Please review the logs for more information: ${BUILD_URL}
-
-// Regards,
-// DevOps Team"""
-//         }
-//     }
-}
+    post {
+        always {
+            sh 'docker system prune -f'
+            mail to: 'shresthasuvam27@gmail.com',
+                 subject: "Jenkins Job '${JOB_NAME}' (${BUILD_NUMBER}) Status",
+                 body: "Check the build details here: ${BUILD_URL}"
+        }
+        success {
+            mail to: 'shresthasuvam27@gmail.com',
+                 subject: 'BUILD SUCCESS NOTIFICATION',
+                 body: """Hi Team,
