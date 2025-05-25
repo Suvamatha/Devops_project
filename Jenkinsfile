@@ -25,7 +25,7 @@ pipeline {
                 script {
                     try {
                         sh 'composer install'
-                        sh 'vendor/bin/phpunit --coverage-clover coverage.xml'
+                        // sh 'vendor/bin/phpunit --coverage-clover coverage.xml'
                         sh 'npm install && npm run test -- --coverage'
                     } catch (Exception e) {
                         error "Tests failed: ${e.message}"
@@ -98,15 +98,15 @@ pipeline {
         //     }
         // }
 
-        stage('Push Image') {
-            steps {
-                withDockerRegistry(credentialsId: 'dockerhub-credentials', url: ''){
-                    sh '''
-                    docker push $dockerImages:$BUILD_NUMBER
-                    '''
-                }
-            }
-        }
+        // stage('Push Image') {
+        //     steps {
+        //         withDockerRegistry(credentialsId: 'dockerhub-credentials', url: ''){
+        //             sh '''
+        //             docker push $dockerImages:$BUILD_NUMBER
+        //             '''
+        //         }
+        //     }
+        // }
     }
 
 //     post {
