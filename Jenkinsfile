@@ -109,35 +109,35 @@ pipeline {
         }
     }
 
-    post {
-        always {
-            sh 'docker system prune -f' // Removed node block, as agent any should provide context
-            mail to: 'shresthasuvam27@gmail.com',
-                 subject: "Jenkins Job '${JOB_NAME}' (${BUILD_NUMBER}) Status",
-                 body: "Check the build details here: ${BUILD_URL}"
-        }
-        success {
-            mail to: 'shresthasuvam27@gmail.com',
-                 subject: 'BUILD SUCCESS NOTIFICATION',
-                 body: """Hi Team,
+//     post {
+//         always {
+//             sh 'docker system prune -f' // Removed node block, as agent any should provide context
+//             mail to: 'shresthasuvam27@gmail.com',
+//                  subject: "Jenkins Job '${JOB_NAME}' (${BUILD_NUMBER}) Status",
+//                  body: "Check the build details here: ${BUILD_URL}"
+//         }
+//         success {
+//             mail to: 'shresthasuvam27@gmail.com',
+//                  subject: 'BUILD SUCCESS NOTIFICATION',
+//                  body: """Hi Team,
 
-Build #${BUILD_NUMBER} passed all quality checks and was successfully processed.
-Docker Image: suvam1/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}
-For more details, visit: ${BUILD_URL}
+// Build #${BUILD_NUMBER} passed all quality checks and was successfully processed.
+// Docker Image: suvam1/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}
+// For more details, visit: ${BUILD_URL}
 
-Regards,
-DevOps Team"""
-        }
-        failure {
-            mail to: 'shresthasuvam27@gmail.com',
-                 subject: 'BUILD FAILED NOTIFICATION',
-                 body: """Hi Team,
+// Regards,
+// DevOps Team"""
+//         }
+//         failure {
+//             mail to: 'shresthasuvam27@gmail.com',
+//                  subject: 'BUILD FAILED NOTIFICATION',
+//                  body: """Hi Team,
 
-Build #${BUILD_NUMBER} failed during the '${currentBuild.result}' stage.
-Please review the logs for more information: ${BUILD_URL}
+// Build #${BUILD_NUMBER} failed during the '${currentBuild.result}' stage.
+// Please review the logs for more information: ${BUILD_URL}
 
-Regards,
-DevOps Team"""
-        }
-    }
+// Regards,
+// DevOps Team"""
+//         }
+//     }
 }
