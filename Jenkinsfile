@@ -1,8 +1,9 @@
 pipeline {
     agent any
     environment {
-        DOCKER_IMAGE_NAME = 'suvam1/jenkins-project'
+        dockerImage = 'suvam1/devops-project'
         DOCKER_TAG = "${env.BUILD_NUMBER}"
+        DOCKER_IMAGE_NAME = 'suvam1/jenkins-project'
         SONAR_SCANNER_HOME = tool 'sonar7.0'
     }
     stages {
@@ -43,6 +44,13 @@ pipeline {
                 }
             }
         }
+        // stage('Quality Gate Check') {
+        //     steps {
+        //         timeout(time: 5, unit: 'MINUTES') {
+        //             waitForQualityGate abortPipeline: true
+        //         }
+        //     }
+        // }
         stage('Build Docker Image') {
             steps {
                 script {
@@ -69,14 +77,13 @@ pipeline {
         }
         stage('Push Image') {
             steps {
-                withDockerRegistry(credentialsId: 'dockerhub-credentials', url: 'https://index.docker.io/v1/') {
-                    sh """
-                        docker push ${DOCKER_IMAGE_NAME}:${DOCKER_TAG}
-                    """
+                withDockerRegistry(credentialsId: 'dockerhub-credentials', url: '') {
+                    sh "docker push ${DOCKER_IMAGE_NAME}:${DOCKER_TAG}"
                 }
             }
         }
     }
+
     // post {
     //     always {
     //         sh 'docker system prune -f'
