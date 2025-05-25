@@ -75,14 +75,17 @@ pipeline {
                 }
             }
         }
-        stage('Push Image') {
-            steps {
-                withDockerRegistry(credentialsId: 'dockerhub-credentials', url: '') {
-                    sh "docker push ${DOCKER_IMAGE_NAME}:${DOCKER_TAG}"
-                }
-            }
-        }
     }
+
+        // stage('Push Image') {
+        //     steps {
+        //         withDockerRegistry(credentialsId: 'dockerhub-credentials', url: ''){
+        //             sh '''
+        //             docker push $dockerImages:$BUILD_NUMBER
+        //             '''
+        //         }
+        //     }
+        // }
 
     // post {
     //     always {
