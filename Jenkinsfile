@@ -84,22 +84,22 @@ pipeline {
         }
     }
 
-    // post {
-    //     always {
-    //         sh 'docker system prune -f'
-    //         mail to: 'shresthasuvam27@gmail.com',
-    //              subject: "Jenkins Job '${JOB_NAME}' (${BUILD_NUMBER}) Status",
-    //              body: "Check the build details here: ${BUILD_URL}"
-    //     }
-    //     success {
-    //         mail to: 'shresthasuvam27@gmail.com',
-    //              subject: 'BUILD SUCCESS NOTIFICATION',
-    //              body: "Hi Team,\n\nBuild #${BUILD_NUMBER} passed all quality checks and was successfully processed.\nDocker Image: ${DOCKER_IMAGE_NAME}:${DOCKER_TAG}\nFor more details, visit: ${BUILD_URL}\n\nRegards,\nDevOps Team"
-    //     }
-    //     failure {
-    //         mail to: 'shresthasuvam27@gmail.com',
-    //              subject: 'BUILD FAILED NOTIFICATION',
-    //              body: "Hi Team,\n\nBuild #${BUILD_NUMBER} failed during the '${currentBuild.result}' stage.\nPlease review the logs for more information: ${BUILD_URL}\n\nRegards,\nDevOps Team"
-    //     }
-    // }
+    post {
+        always {
+            sh 'docker system prune -f'
+            mail to: 'shresthasuvam27@gmail.com',
+                 subject: "Jenkins Job '${JOB_NAME}' (${BUILD_NUMBER}) Status",
+                 body: "Check the build details here: ${BUILD_URL}"
+        }
+        success {
+            mail to: 'shresthasuvam27@gmail.com',
+                 subject: 'BUILD SUCCESS NOTIFICATION',
+                 body: "Hi Team,\n\nBuild #${BUILD_NUMBER} passed all quality checks and was successfully processed.\nDocker Image: ${DOCKER_IMAGE_NAME}:${DOCKER_TAG}\nFor more details, visit: ${BUILD_URL}\n\nRegards,\nDevOps Team"
+        }
+        failure {
+            mail to: 'shresthasuvam27@gmail.com',
+                 subject: 'BUILD FAILED NOTIFICATION',
+                 body: "Hi Team,\n\nBuild #${BUILD_NUMBER} failed during the '${currentBuild.result}' stage.\nPlease review the logs for more information: ${BUILD_URL}\n\nRegards,\nDevOps Team"
+        }
+    }
 }
